@@ -190,7 +190,7 @@ export default function SignInView() {
               alt="logo"
               className="h-[92px] w-[92px] rounded-2xl"
             ></img>
-            <p className="text-2xl font-semibold text-white">NotePilot</p>
+            <p className="text-2xl font-semibold text-white">SliderAI</p>
           </div>
         </CardContent>
       </Card>

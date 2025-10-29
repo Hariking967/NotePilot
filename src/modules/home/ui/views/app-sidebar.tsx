@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import AllNotes from "./all-notes";
 
 const items = [
   { id: "all-notes", label: "All Notes", icon: FileTextIcon },
@@ -126,7 +127,21 @@ export default function AppSidebar() {
           </div>
         </Sidebar>
 
-        <SidebarInset />
+        <SidebarInset className="p-6 bg-neutral-900">
+          {(locked ?? active) === "all-notes" ? (
+            <AllNotes />
+          ) : (
+            <div className="h-full w-full">
+              <h1 className="text-2xl font-semibold text-white">
+                {items.find((i) => i.id === (locked ?? active))?.label}
+              </h1>
+              <p className="mt-4 text-neutral-300">
+                This is the{" "}
+                {items.find((i) => i.id === (locked ?? active))?.label} view.
+              </p>
+            </div>
+          )}
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
