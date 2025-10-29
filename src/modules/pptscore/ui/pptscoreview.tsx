@@ -21,8 +21,7 @@ import { PlusCircle, Upload, Star } from "lucide-react";
 // Supabase and auth removed for local-file MVP
 
 const formSchema = z.object({
-  // filePath is a plain text field containing the client-provided path or name
-  filePath: z.string().min(1, "File path is required"),
+  file: z.any().refine((file) => file?.name, "Please select a PPT file"),
   criteria: z
     .array(
       z.object({
@@ -40,12 +39,23 @@ export default function PPTScoreView() {
   const [pending, setPending] = useState(false);
   const [jsonPayload, setJsonPayload] = useState<string | null>(null);
   const [evaluationResult, setEvaluationResult] = useState<any | null>(null);
+
+  // Style for the white overlay
+  const overlayStyle: React.CSSProperties = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "white",
+    zIndex: 100,
+    pointerEvents: "none", // Allows clicking through the overlay
+  };
   // auth removed for MVP; this is a local-file only flow
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    // Provide an explicit default for filePath to keep the input controlled
-    defaultValues: { filePath: "", criteria: [{ text: "Overall clarity" }] },
+    defaultValues: { criteria: [{ text: "Overall clarity" }] },
   });
 
   const { control, handleSubmit } = form;
@@ -61,11 +71,41 @@ export default function PPTScoreView() {
     setScore(null);
     setPending(true);
     try {
-      const filePath = (values as any).filePath as string;
-      const fields = (values as any).criteria as { text: string }[];
+      // 1) Upload file to get server path
+      const file = values.file;
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadRes = await fetch("/api/uploads/local", {
+        method: "POST",
+        body: formData,
+      });
+
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData?.serverPath) {
+        throw new Error(uploadData?.error || "Upload failed");
+      }
+
+      // Normalize field text to ensure consistent comparison
+      const normalizeText = (text: string) => text.toLowerCase().trim();
+
+      // Get unique fields while preserving order of first appearance
+      const seenFields = new Set<string>();
+      const uniqueFields = values.criteria.filter((field) => {
+        const normalizedText = normalizeText(field.text);
+        if (seenFields.has(normalizedText)) {
+          return false;
+        }
+        seenFields.add(normalizedText);
+        return true;
+      });
+
       const payload = {
-        fields: fields.map((f) => ({ Pillar_Title: f.text, Critique: "" })),
-        filePath,
+        fields: uniqueFields.map((f) => ({
+          Pillar_Title: f.text,
+          Critique: "",
+        })),
+        filePath: uploadData.serverPath,
       };
       // store the request payload for display/debugging
       setJsonPayload(JSON.stringify(payload, null, 2));
@@ -93,7 +133,66 @@ export default function PPTScoreView() {
       }
 
       const evalJson = await res.json();
-      setEvaluationResult(evalJson);
+      console.log("Evaluation response:", evalJson); // For debugging
+
+      // Define interfaces for type safety
+      interface PillarEvaluation {
+        Pillar_Title?: string;
+        title?: string;
+        name?: string;
+        Score?: number;
+        Pillar_Score?: number;
+        score?: number;
+        Critique?: string;
+        critique?: string;
+        feedback?: string;
+      }
+
+      // Ensure we have the correct structure for display
+      // First, get the original pillars array
+      const originalPillars = (evalJson.Pillars_of_Evaluation ||
+        evalJson.pillars ||
+        []) as PillarEvaluation[];
+
+      // Create a map of normalized titles to their evaluations
+      const pillarMap = new Map<string, PillarEvaluation>(
+        originalPillars.map((p) => [
+          normalizeText(p.Pillar_Title || p.title || p.name || ""),
+          p,
+        ])
+      );
+
+      // Ensure all user-specified fields are included
+      const formattedPillars = uniqueFields.map((field) => {
+        const normalizedTitle = normalizeText(field.text);
+        const existingPillar = pillarMap.get(normalizedTitle);
+
+        return {
+          Pillar_Title: field.text, // Use original user input
+          Score:
+            existingPillar?.Score ??
+            existingPillar?.Pillar_Score ??
+            existingPillar?.score ??
+            0,
+          Critique:
+            existingPillar?.Critique ??
+            existingPillar?.critique ??
+            existingPillar?.feedback ??
+            "No feedback available",
+        };
+      });
+
+      const formattedResponse = {
+        ...evalJson,
+        Pillars_of_Evaluation: formattedPillars,
+        Overall_Presentation_Rating: evalJson.Overall_Presentation_Rating || {
+          Average_Score: evalJson.overall_score,
+          Score_Percentage: evalJson.score_percentage,
+          Justification: evalJson.justification,
+        },
+      };
+
+      setEvaluationResult(formattedResponse);
 
       // If overall score exists, display it
       const overall = (evalJson as any)?.Overall_Presentation_Rating
@@ -164,16 +263,18 @@ export default function PPTScoreView() {
 
                 <FormField
                   control={control}
-                  name="filePath"
-                  render={({ field }) => (
+                  name="file"
+                  render={({ field: { onChange, ...field } }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
-                        <Upload className="h-4 w-4" /> File path
+                        <Upload className="h-4 w-4" /> Select PPT/PPTX File
                       </FormLabel>
                       <FormControl>
                         <Input
-                          {...field}
-                          placeholder="C:\\path\\to\\file.pptx or relative/path/file.pptx"
+                          type="file"
+                          accept=".ppt,.pptx"
+                          onChange={(e) => onChange(e.target.files?.[0])}
+                          className="bg-neutral-800 border-neutral-700 text-white"
                         />
                       </FormControl>
                       <FormMessage />
@@ -318,18 +419,24 @@ export default function PPTScoreView() {
                             <div className="flex items-center gap-3">
                               <div className="flex items-center justify-center h-12 w-12 rounded-full bg-emerald-900/10">
                                 <div className="text-lg font-extrabold text-emerald-300">
-                                  {p.Score ?? p.Pillar_Score ?? "-"}
+                                  {p.Score ?? p.Pillar_Score ?? p.score ?? "-"}
                                 </div>
                                 <div className="text-xs text-gray-400">/10</div>
                               </div>
                               <div className="flex-1">
                                 <div className="mt-0 bg-neutral-800 p-2 rounded text-sm font-semibold text-gray-100">
-                                  {p.Pillar_Title}
+                                  {p.Pillar_Title ??
+                                    p.title ??
+                                    p.name ??
+                                    "Unknown"}
                                 </div>
                               </div>
                             </div>
                             <div className="mt-3 text-sm text-gray-300">
-                              {p.Critique}
+                              {p.Critique ??
+                                p.critique ??
+                                p.feedback ??
+                                "No feedback available"}
                             </div>
                           </div>
                         )

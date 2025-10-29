@@ -82,7 +82,7 @@ export default function SliderAIHome() {
           />
 
           <FeatureCard
-            title="PPT → Text"
+            title="PPT Summarizer"
             href="/ppttotext"
             emoji="📄"
             description="Extract plain text from uploaded PowerPoint slides for editing, quoting, or generating study material."
