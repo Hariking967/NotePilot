@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -66,20 +60,10 @@ export const verification = pgTable("verification", {
   ),
 });
 
-export const explorer = pgTable("explorer", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+export const pptscore = pgTable("pptscore", {
+  userId: text("user_id").notNull(),
   pptUrl: text("ppt_url").notNull(),
-  score: integer("score")
-    .$defaultFn(() => -1)
-    .notNull(),
-  summary: text("summary")
-    .$defaultFn(() => "No summary")
-    .notNull(),
+  score: text("score").notNull(),
   createdAt: timestamp("created_at")
     .$defaultFn(() => new Date())
     .notNull(),
