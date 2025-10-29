@@ -73,7 +73,7 @@ export default function SliderAIHome() {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <FeatureCard
             title="PPT Score"
             href="/pptscore"
@@ -82,17 +82,10 @@ export default function SliderAIHome() {
           />
 
           <FeatureCard
-            title="Text → PPT"
-            href="/texttoppt"
-            emoji="✍️"
-            description="Provide text or notes and generate a structured slide deck automatically."
-          />
-
-          <FeatureCard
-            title="PPT Templates"
-            href="/ppttemplate"
-            emoji="🎨"
-            description="Browse and apply designer templates to make slides look professional in seconds."
+            title="PPT → Text"
+            href="/ppttotext"
+            emoji="📄"
+            description="Extract plain text from uploaded PowerPoint slides for editing, quoting, or generating study material."
           />
 
           <FeatureCard
