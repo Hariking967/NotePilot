@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Piano/Book Element -->
+  <path d="M300 250 H400 V350 H300 V250 Z" fill="#FFF5E6"/>
+  <!-- Piano Keys -->
+  <path d="M315 250 V320 H330 V250 H315 Z" fill="#334155"/>
+  <path d="M345 250 V320 H360 V250 H345 Z" fill="#334155"/>
+  <path d="M375 250 V320 H390 V250 H375 Z" fill="#334155"/>
+  
+  <!-- Display Rectangle with Rounded Corners -->
+  <rect x="350" y="220" width="300" height="200" rx="20" stroke="#FF7C4D" stroke-width="8" fill="none"/>
+  
+  <!-- Curved Line -->
+  <path d="M400 320 Q450 280 500 320" stroke="#FF7C4D" stroke-width="8" fill="none"/>
+  
+  <!-- Musical Notes and Question Marks -->
+  <circle cx="650" cy="150" r="8" fill="#FF7C4D" opacity="0.6"/>
+  <circle cx="600" cy="180" r="6" fill="#94A3B8" opacity="0.4"/>
+  <text x="680" y="200" font-family="Arial" font-size="24" fill="#FF7C4D" opacity="0.8">?</text>
+  <text x="550" y="150" font-family="Arial" font-size="20" fill="#94A3B8" opacity="0.6">♪</text>
+</svg>

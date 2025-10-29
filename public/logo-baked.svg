@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Baked logo: black background with the provided JPG centered and scaled -->
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="100%" height="100%" fill="#000" />
+  <!-- embed the provided raster logo; preserve aspect ratio and center -->
+  <image href="/logo.jpg" x="50" y="40" width="700" height="520" preserveAspectRatio="xMidYMid meet" />
+</svg>

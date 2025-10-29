@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 
 export default function SliderAIHome() {
+  const { data } = authClient.useSession();
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white py-8 px-6">
       <div className="max-w-6xl mx-auto">
@@ -16,18 +22,42 @@ export default function SliderAIHome() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/auth/sign-in"
-              className="px-4 py-2 rounded-md bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition"
-            >
-              SignIN
-            </Link>
-            <Link
-              href="/auth/sign-up"
-              className="px-4 py-2 rounded-md bg-black text-emerald-300 border border-emerald-600 font-semibold hover:bg-emerald-900 transition"
-            >
-              SignUP
-            </Link>
+            {data?.user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-300">
+                  {data.user.name ?? data.user.email ?? "User"}
+                </span>
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    authClient.signOut({
+                      fetchOptions: {
+                        onSuccess: () => {
+                          window.location.href = "/";
+                        },
+                      },
+                    })
+                  }
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/auth/sign-in"
+                  className="px-4 py-2 rounded-md bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition"
+                >
+                  SignIN
+                </Link>
+                <Link
+                  href="/auth/sign-up"
+                  className="px-4 py-2 rounded-md bg-black text-emerald-300 border border-emerald-600 font-semibold hover:bg-emerald-900 transition"
+                >
+                  SignUP
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
